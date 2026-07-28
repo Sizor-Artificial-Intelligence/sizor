@@ -1,0 +1,27 @@
+/* Personalización de NProgress */
+#nprogress .bar {
+  background: #3b82f6 !important; /* Color azul vibrante */
+  height: 3px !important; /* Altura de la barra */
+  z-index: 9999 !important;
+}
+
+#nprogress .peg {
+  box-shadow:
+    0 0 10px #3b82f6,
+    0 0 5px #3b82f6 !important; /* Efecto de brillo */
+}
+
+#nprogress .spinner {
+  display: none !important; /* Ocultar el spinner circular */
+}
+
+/* Animación suave para la barra */
+#nprogress .bar {
+  transition: all 0.3s ease-in-out !important;
+}
+
+/* Efecto de desvanecimiento al completar */
+#nprogress .bar.completed {
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}

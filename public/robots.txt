@@ -1,0 +1,22 @@
+User-agent: *
+Allow: /
+Allow: /about-us
+Allow: /contact
+Allow: /auth/register
+Allow: /auth/login
+
+# Bloquear todas las rutas de la aplicación privada
+Disallow: /app/
+Disallow: /auth/signup/
+Disallow: /auth/forgot-password/
+Disallow: /auth/google/
+Disallow: /auth/google-calendar/
+Disallow: /payment/
+Disallow: /api/
+Disallow: /webhooks/
+
+# Bloquear archivos privados
+Disallow: /privacy-policy
+
+# Sitemap
+Sitemap: https://sizor.cloud/sitemap.xml

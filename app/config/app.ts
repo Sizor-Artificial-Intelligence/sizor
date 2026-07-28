@@ -1,0 +1,11 @@
+export const APP_NAME: string = "Sizor AI";
+export const TOKEN_PRICE: number = 0.00003325;
+export const LICENSE_PRICE: number = 20;
+export const APP_COST: number = 5;
+export const MIN_TOKENS_BUY: number = 30000;
+export const MAX_TOKENS_BUY: number = 1000000;
+export const EMAIL_SUPPORT: string = "contact@sizor.cloud";
+export const EMAIL_ADMINISTRATION: string = "admin@sizor.cloud";
+export const COPILOT_DAILY_TOKEN_LIMIT: number = 100000;
+export const COPILOT_UNLIMITED_DAILY_TOKEN_LIMIT: number = 1000000;
+export const COPILOT_UNLIMITED_PRICE: number = 5;

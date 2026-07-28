@@ -1,0 +1,511 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String         @id @default(uuid())
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  firstName        String
+  lastName         String?
+  email            String?        @unique
+  phone            String?
+  countryCode      String?
+  country          String?
+  password         String         @db.Text
+  nextPathSignup   String?        @default("/auth/signup/company/")
+  codeVerification String?
+  isSuperAdmin     Boolean        @default(false)
+  isGoogle         Boolean        @default(false)
+  routesAllowed    String?
+  avatar           String         @default("https://firebasestorage.googleapis.com/v0/b/chatzy-bca9e.firebasestorage.app/o/default-avatar-icon-of-social-media-user-vector.jpg?alt=media&token=970f912c-6aa7-4d7d-9cf1-4970a1411624")
+  UserCompany      UserCompany[]
+  Notification     Notification[]
+  assignedContacts Contact[]
+}
+
+model Company {
+  id                          String              @id @default(uuid())
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+  name                        String
+  initialsName                String
+  planId                      String?
+  plan                        Plan?               @relation(fields: [planId], references: [id])
+  copilotUnlimited            Boolean             @default(false)
+  conectedWithCalendar        Boolean             @default(false)
+  googleCalendarId            String?             @db.Text
+  googleAccessToken           String?             @db.Text
+  googleRefreshToken          String?             @db.Text
+  googleTokenExpiry           DateTime?
+  googleCalendarName          String?             @db.Text
+  googleCalendarEmail         String?             @db.Text
+  SETT_IA_RESPONSE            Boolean             @default(true)
+  NOTT_METHOD                 String              @default("app")
+  NOTT_FORM_SUBMISSION        Boolean             @default(true)
+  NOTT_APPOINTMENT_CREATED    Boolean             @default(true)
+  NOTT_APPOINTMENT_MODIFIED   Boolean             @default(true)
+  NOTT_APPOINTMENT_CANCELLED  Boolean             @default(true)
+  NOTT_CHAT_ASSIGNED_TO_HUMAN Boolean             @default(true)
+  UserCompany                 UserCompany[]
+  TokenTransactions           TokenTransaction[]
+  Contact                     Contact[]
+  CustomField                 CustomField[]
+  Message                     Message[]
+  Form                        Form[]
+  FormResponse                FormResponse[]
+  Agent                       Agent[]
+  Notification                Notification[]
+  Reaction                    Reaction[]
+  Portfolio                   Portfolio[]
+  TrainingFolder              TrainingFolder[]
+  TrainingFile                TrainingFile[]
+  CopilotTokenUsage           CopilotTokenUsage[]
+}
+
+model Plan {
+  id                       String             @id @default(uuid())
+  createdAt                DateTime           @default(now())
+  updatedAt                DateTime           @updatedAt
+  name                     String
+  price                    Float
+  dateStartSubscription    DateTime?
+  datePay                  DateTime?
+  daysToExpireSubscription Int                @default(30)
+  pendingPayment           Boolean            @default(false)
+  isFree                   Boolean            @default(false)
+  maxContacts              Int                @default(7)
+  contactsUsed             Int                @default(0)
+  contactsUnlimited        Boolean            @default(false)
+  maxAgents                Int                @default(1)
+  agentsUsed               Int                @default(0)
+  agentsUnlimited          Boolean            @default(false)
+  maxTokens                Float              @default(10000)
+  tokensUsed               Int                @default(0)
+  maxSocialMedia           Int                @default(1)
+  socialMediaUsed          Int                @default(0)
+  baseTokens               Float              @default(10000)
+  additionalTokens         Float              @default(0)
+  additionalTokensUsed     Float              @default(0)
+  additionalTokensType     String?
+  additionalTokensPrice    Float              @default(0)
+  additionalTokensExpiry   DateTime?
+  facebookConnected        Boolean            @default(false)
+  whatsappConnected        Boolean            @default(false)
+  instagramConnected       Boolean            @default(false)
+  webConnected             Boolean            @default(false)
+  API_TOKEN_FACEBOOK       String?            @db.Text
+  ACCOUNT_ID_FACEBOOK      String?            @db.Text
+  API_TOKEN_INSTAGRAM      String?            @db.Text
+  ACCOUNT_ID_INSTAGRAM     String?            @db.Text
+  API_TOKEN_WHATSAPP       String?            @db.Text
+  ACCOUNT_ID_WHATSAPP      String?            @db.Text
+  agentId                  String?
+  agent                    Agent?             @relation(fields: [agentId], references: [id])
+  Company                  Company[]
+  TokenTransactions        TokenTransaction[]
+}
+
+model CopilotTokenUsage {
+  id         String   @id @default(uuid())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  companyId  String
+  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  date       String   @db.VarChar(10)
+  tokensUsed Int      @default(0)
+
+  @@unique([companyId, date])
+  @@index([companyId])
+  @@index([date])
+}
+
+model UserCompany {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+  companyId String
+  user      User     @relation(fields: [userId], references: [id])
+  company   Company  @relation(fields: [companyId], references: [id])
+}
+
+model License {
+  id                   String    @id @default(uuid())
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  maxUsers             Int       @default(1)
+  maxLicenses          Int       @default(1)
+  usersUnlimited       Boolean   @default(false)
+  usersUsed            Int       @default(1)
+  subdomain            String?
+  nameEnterprise       String?
+  parentTenantId       String?
+  nameParent           String?
+  isEnterprise         Boolean   @default(false)
+  isSon                Boolean   @default(false)
+  hasPremium           Boolean   @default(false)
+  dateLastVerification DateTime?
+}
+
+model TokenTransaction {
+  id              String    @id @default(uuid())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  companyId       String
+  company         Company   @relation(fields: [companyId], references: [id])
+  planId          String
+  plan            Plan      @relation(fields: [planId], references: [id])
+  transactionType String
+  tokensAmount    Float
+  price           Float
+  increaseType    String?
+  expiryDate      DateTime?
+  isActive        Boolean   @default(true)
+  description     String?
+}
+
+model Contact {
+  id                      String                    @id @default(uuid())
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime                  @updatedAt
+  companyId               String
+  company                 Company                   @relation(fields: [companyId], references: [id])
+  active                  Boolean                   @default(true)
+  name                    String
+  lastName                String?
+  countryCode             String?
+  country                 String?
+  phone                   String?
+  email                   String?
+  address                 String?
+  gender                  String?
+  origin                  String                    @default("Manual")
+  senderId                String?
+  respondWithIa           Boolean                   @default(false)
+  agentId                 String?
+  resumeConversation      String?                   @db.Text
+  threadId                String?                   @db.Text
+  sentiment               String?                   @default("neutral") // neutral, happy, sad, frustrated, angry, calm
+  leadTemperature         String?                   @default("cold") // cold, warm, hot, very_hot, very_cold, not_applicable
+  agent                   Agent?                    @relation(fields: [agentId], references: [id])
+  assignedUserId          String?
+  assignedUser            User?                     @relation(fields: [assignedUserId], references: [id])
+  ContactCustomFieldValue ContactCustomFieldValue[]
+  Message                 Message[]
+  FormResponse            FormResponse[]
+}
+
+model Message {
+  id          String     @id @default(uuid())
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  content     String?    @db.Text
+  sender      String
+  senderId    String
+  timestamp   String
+  messageId   String
+  contactId   String
+  contact     Contact    @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  status      String     @default("UNREAD")
+  type        String     @default("TEXT")
+  attachments String?    @db.Text
+  companyId   String
+  company     Company    @relation(fields: [companyId], references: [id])
+  reactions   Reaction[]
+}
+
+model CustomField {
+  id                      String                    @id @default(uuid())
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime                  @updatedAt
+  companyId               String
+  company                 Company                   @relation(fields: [companyId], references: [id])
+  name                    String
+  fieldType               String // "text", "number", "date", "boolean", "select", "textarea"
+  isRequired              Boolean                   @default(false)
+  options                 String?                   @db.Text // Para campos de tipo "select", almacena las opciones como JSON
+  order                   Int                       @default(0)
+  active                  Boolean                   @default(true)
+  ContactCustomFieldValue ContactCustomFieldValue[]
+}
+
+model ContactCustomFieldValue {
+  id            String      @id @default(uuid())
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  contactId     String
+  contact       Contact     @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  customFieldId String
+  customField   CustomField @relation(fields: [customFieldId], references: [id], onDelete: Cascade)
+  value         String?     @db.Text
+
+  @@unique([contactId, customFieldId])
+}
+
+model Form {
+  id           String         @id @default(uuid())
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  companyId    String
+  company      Company        @relation(fields: [companyId], references: [id])
+  name         String
+  description  String?        @db.Text
+  slug         String         @unique
+  active       Boolean        @default(true)
+  FormField    FormField[]
+  FormResponse FormResponse[]
+  Agent        Agent[]
+}
+
+model FormField {
+  id                String              @id @default(uuid())
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  formId            String
+  form              Form                @relation(fields: [formId], references: [id], onDelete: Cascade)
+  label             String
+  fieldType         String
+  isRequired        Boolean             @default(false)
+  placeholder       String?
+  options           String?             @db.Text
+  order             Int                 @default(0)
+  active            Boolean             @default(true)
+  FormResponseValue FormResponseValue[]
+}
+
+model FormResponse {
+  id                String              @id @default(uuid())
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  formId            String
+  form              Form                @relation(fields: [formId], references: [id], onDelete: Cascade)
+  companyId         String
+  company           Company             @relation(fields: [companyId], references: [id])
+  contactId         String?
+  contact           Contact?            @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  submittedAt       DateTime            @default(now())
+  ipAddress         String?
+  userAgent         String?
+  read              Boolean             @default(false)
+  active            Boolean             @default(true)
+  FormResponseValue FormResponseValue[]
+}
+
+model FormResponseValue {
+  id             String       @id @default(uuid())
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  formResponseId String
+  formResponse   FormResponse @relation(fields: [formResponseId], references: [id], onDelete: Cascade)
+  formFieldId    String
+  formField      FormField    @relation(fields: [formFieldId], references: [id], onDelete: Cascade)
+  value          String?      @db.Text
+  active         Boolean      @default(true)
+
+  @@unique([formResponseId, formFieldId])
+}
+
+model Agent {
+  id                    String                @id @default(uuid())
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  companyId             String
+  company               Company               @relation(fields: [companyId], references: [id])
+  name                  String
+  instructions          String?               @db.Text // Opcional para multiagente (el main solo orquesta)
+  responseMode          String                @default("instructions_only") @db.VarChar(32)
+  canManageAppointments Boolean               @default(false)
+  canCollectFormData    Boolean               @default(false)
+  canAccessPortfolio    Boolean               @default(false)
+  formId                String?
+  form                  Form?                 @relation(fields: [formId], references: [id])
+  limitations           String?               @db.Text
+  escalationRules       String?               @db.Text
+  assistantId           String?               @db.Text
+  active                Boolean               @default(true)
+  isMultiAgent          Boolean               @default(false)
+  Contact               Contact[]
+  Plan                  Plan[]
+  TrainingFolders       AgentTrainingFolder[]
+  TrainingFiles         AgentTrainingFile[]
+  TrainingRules         AgentTrainingRule[]
+  SubAgentsAsMain       AgentSubAgent[]       @relation("MainAgent")
+  SubAgentsAsMember     AgentSubAgent[]       @relation("SubAgent")
+}
+
+/// Relación entre agente principal (multiagente) y sus subagentes. El campo role sirve para enrutar (ej. "soporte", "ventas").
+model AgentSubAgent {
+  id          String   @id @default(uuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  mainAgentId String
+  mainAgent   Agent    @relation("MainAgent", fields: [mainAgentId], references: [id], onDelete: Cascade)
+  subAgentId  String
+  subAgent    Agent    @relation("SubAgent", fields: [subAgentId], references: [id], onDelete: Cascade)
+  role        String   @db.VarChar(64)
+  order       Int      @default(0)
+
+  @@unique([mainAgentId, subAgentId])
+  @@index([mainAgentId])
+  @@index([subAgentId])
+}
+
+model AgentTrainingRule {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  agentId   String
+  agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  trigger   String   @db.Text
+  response  String   @db.Text
+  order     Int      @default(0)
+
+  @@index([agentId])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id])
+  title     String
+  message   String   @db.Text
+  isPublic  Boolean  @default(false)
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  path      String?
+  isRead    Boolean  @default(false)
+  active    Boolean  @default(true)
+}
+
+model Reaction {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  messageId String
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  senderId  String
+  emoji     String
+  action    String // "react" or "unreact"
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id])
+
+  @@unique([messageId, senderId, emoji])
+}
+
+model Portfolio {
+  id          String   @id @default(uuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  companyId   String
+  name        String
+  description String?  @db.Text
+  price       Float?
+  imageUrl    String?  @db.Text
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+}
+
+model ApiKey {
+  id            String          @id @default(uuid())
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  name          String
+  key           String          @db.Text
+  active        Boolean         @default(true)
+  lastUsed      DateTime?
+  ApiKeyLicense ApiKeyLicense[]
+
+  @@index([active])
+}
+
+model ApiKeyLicense {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  apiKeyId  String
+  apiKey    ApiKey   @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+  tenantId  String   @db.VarChar(191)
+
+  @@unique([apiKeyId, tenantId])
+  @@index([apiKeyId])
+  @@index([tenantId])
+}
+
+model TrainingFolder {
+  id        String                @id @default(uuid())
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
+  companyId String
+  company   Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name      String
+  parentId  String?
+  parent    TrainingFolder?       @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children  TrainingFolder[]      @relation("FolderHierarchy")
+  files     TrainingFile[]
+  active    Boolean               @default(true)
+  agents    AgentTrainingFolder[]
+
+  @@index([companyId])
+  @@index([parentId])
+}
+
+model TrainingFile {
+  id        String              @id @default(uuid())
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+  companyId String
+  company   Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  folderId  String?
+  folder    TrainingFolder?     @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  name      String
+  fileName  String
+  fileType  String // "pdf" o "docx"
+  fileSize  Int // Tamaño en bytes
+  fileUrl   String              @db.Text
+  active    Boolean             @default(true)
+  status    String              @default("ready") // "ready", "processing", "error"
+  agents    AgentTrainingFile[]
+
+  @@index([companyId])
+  @@index([folderId])
+}
+
+// Relación many-to-many entre Agent y TrainingFolder
+model AgentTrainingFolder {
+  id        String         @id @default(uuid())
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  agentId   String
+  agent     Agent          @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  folderId  String
+  folder    TrainingFolder @relation(fields: [folderId], references: [id], onDelete: Cascade)
+
+  @@unique([agentId, folderId])
+  @@index([agentId])
+  @@index([folderId])
+}
+
+// Relación many-to-many entre Agent y TrainingFile
+model AgentTrainingFile {
+  id        String       @id @default(uuid())
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  agentId   String
+  agent     Agent        @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  fileId    String
+  file      TrainingFile @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@unique([agentId, fileId])
+  @@index([agentId])
+  @@index([fileId])
+}

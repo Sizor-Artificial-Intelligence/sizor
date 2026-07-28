@@ -1,0 +1,89 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "dev: Frontend",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": {
+        "cwd": "${workspaceFolder:sizor}",
+        "isBackground": true,
+        "env": {},
+        "shell": {
+          "executable": "cmd.exe",
+          "args": ["/c"]
+        }
+      },
+      "problemMatcher": {
+        "owner": "typescript",
+        "pattern": { "regexp": "^.*$" },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": ".*(Local:|localhost|ready in).*"
+        }
+      },
+      "presentation": { "reveal": "always", "panel": "dedicated", "group": "dev" }
+    },
+    {
+      "label": "dev: Api Backend",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": {
+        "cwd": "${workspaceFolder:api-sizor}",
+        "isBackground": true,
+        "shell": {
+          "executable": "cmd.exe",
+          "args": ["/c"]
+        }
+      },
+      "problemMatcher": {
+        "owner": "node",
+        "pattern": { "regexp": "^.*$" },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": ".*(listening|Listening|started|running on).*"
+        }
+      },
+      "presentation": { "reveal": "always", "panel": "dedicated", "group": "dev" }
+    },
+    {
+      "label": "dev: Ai",
+      "type": "shell",
+      "command": ".venv\\Scripts\\python.exe -m uvicorn main:app --reload",
+      "options": {
+        "cwd": "${workspaceFolder:sizor-ai}",
+        "isBackground": true,
+        "shell": {
+          "executable": "cmd.exe",
+          "args": ["/c"]
+        }
+      },
+      "problemMatcher": {
+        "owner": "python",
+        "pattern": { "regexp": "^.*$" },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": ".*(Uvicorn running|Application startup complete).*"
+        }
+      },
+      "presentation": { "reveal": "always", "panel": "dedicated", "group": "dev" }
+    },
+    {
+      "label": "dev: todas las apps",
+      "dependsOn": ["dev: Frontend", "dev: Api Backend", "dev: Ai"],
+      "dependsOrder": "parallel",
+      "problemMatcher": [],
+      "group": { "kind": "build", "isDefault": true }
+    },
+    {
+      "label": "dev: Frontend + Api Backend",
+      "dependsOn": ["dev: Frontend", "dev: Api Backend"],
+      "dependsOrder": "parallel",
+      "problemMatcher": [],
+      "group": "build"
+    }
+  ]
+}
