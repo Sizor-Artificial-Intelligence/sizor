@@ -7,39 +7,67 @@ import { getTenantId } from "./auth.server";
 dotenv.config();
 
 /**
- * Obtiene la configuración de la base de datos desde el entorno
+ * Separar host y puerto de DATABASE_HOST
+ */
+function splitHostPort(value: string): { host: string; port?: string } {
+  const trimmed = value.trim();
+  const lastColon = trimmed.lastIndexOf(":");
+  if (lastColon === -1) {
+    return { host: trimmed };
+  }
+  const portPart = trimmed.slice(lastColon + 1);
+  if (!/^\d+$/.test(portPart)) {
+    return { host: trimmed };
+  }
+  return { host: trimmed.slice(0, lastColon), port: portPart };
+}
+
+/**
+ * Obtener configuración de la base de datos
  */
 function getDbConfig() {
   const {
     DATABASE_USER,
     DATABASE_PASSWORD,
     DATABASE_HOST,
+    DATABASE_PORT,
     DEFAULT_DATABASE,
     DATABASE_ADMIN,
   } = process.env;
 
   let host = DATABASE_HOST || "127.0.0.1";
-  
-  // Forzar 127.0.0.1 si es localhost para evitar problemas con IPv6 (::1)
+  let port = DATABASE_PORT || "3306";
+
+  // Evitar IPv6 ::1 al usar localhost
   if (host === "localhost") {
     host = "127.0.0.1";
+  }
+
+  const parsed = splitHostPort(host);
+  host = parsed.host;
+  if (parsed.port) {
+    port = parsed.port;
   }
 
   return {
     user: DATABASE_USER || "root",
     password: DATABASE_PASSWORD || "",
-    host: host,
+    host,
+    port,
     defaultDatabase: DEFAULT_DATABASE || "sizor-0001",
     adminDatabase: DATABASE_ADMIN || "sizor-admin",
   };
 }
 
 /**
- * Obtiene la URL base de la base de datos
+ * Obtener URL de conexión MySQL para Prisma
  */
 export function getBaseDatabaseUrl(tenantId?: string) {
   const config = getDbConfig();
-  return `mysql://${config.user}:${config.password}@${config.host}/${tenantId || config.defaultDatabase}`;
+  const user = encodeURIComponent(config.user);
+  const password = encodeURIComponent(config.password);
+  const database = tenantId || config.defaultDatabase;
+  return `mysql://${user}:${password}@${config.host}:${config.port}/${database}`;
 }
 
 /**

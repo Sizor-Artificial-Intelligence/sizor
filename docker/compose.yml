@@ -25,6 +25,7 @@ services:
       PORT: 3000
       TZ: America/Bogota
       DATABASE_HOST: host.docker.internal
+      DATABASE_PORT: "3306"
       QDRANT_URL: http://qdrant:6333
     extra_hosts:
       - "host.docker.internal:host-gateway"
