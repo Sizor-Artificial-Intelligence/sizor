@@ -1,0 +1,91 @@
+name: sizor
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      args:
+        VITE_NODE_ENV: ${VITE_NODE_ENV:-production}
+        VITE_DOMAIN: ${VITE_DOMAIN}
+        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID}
+        VITE_API_URL: ${VITE_API_URL}
+        VITE_API_URL_DEV: ${VITE_API_URL_DEV}
+        VITE_PHONE_NUMBER_WHATSAPP: ${VITE_PHONE_NUMBER_WHATSAPP}
+    image: ghcr.io/sizor-artificial-intelligence/sizor:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    expose:
+      - "3000"
+    env_file:
+      - path: ../.env
+        required: false
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3000
+      TZ: America/Bogota
+      DATABASE_HOST: host.docker.internal
+      QDRANT_URL: http://qdrant:6333
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      qdrant:
+        condition: service_healthy
+    init: true
+    healthcheck:
+      test:
+        ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:3000/health"]
+      interval: 10s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  qdrant:
+    image: qdrant/qdrant:v1.13.6
+    restart: unless-stopped
+    expose:
+      - "6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "bash -c ':> /dev/tcp/127.0.0.1/6333' || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      start_period: 15s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    image: sizor-nginx:latest
+    pull_policy: build
+    restart: unless-stopped
+    environment:
+      TZ: America/Bogota
+    ports:
+      - "5000:80"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:80/nginx-health"]
+      interval: 10s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+    depends_on:
+      app:
+        condition: service_healthy
+
+volumes:
+  qdrant_data:

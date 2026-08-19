@@ -1,0 +1,67 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push app image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile
+          push: true
+          build-args: |
+            VITE_NODE_ENV=production
+            VITE_DOMAIN=${{ secrets.VITE_DOMAIN }}
+            VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+            VITE_API_URL=${{ secrets.VITE_API_URL }}
+            VITE_API_URL_DEV=${{ secrets.VITE_API_URL_DEV }}
+            VITE_PHONE_NUMBER_WHATSAPP=${{ secrets.VITE_PHONE_NUMBER_WHATSAPP }}
+          tags: |
+            ghcr.io/sizor-artificial-intelligence/sizor:${{ github.sha }}
+            ghcr.io/sizor-artificial-intelligence/sizor:latest
+
+      - name: Deploy to VPS (zero-downtime)
+        uses: appleboy/ssh-action@v1
+        env:
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IMAGE_TAG: ${{ github.sha }}
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: 22
+          envs: GHCR_USER,GHCR_TOKEN,IMAGE_TAG
+          script: |
+            cd $HOME/Sizor/app
+            git fetch origin
+            git reset --hard origin/main
+
+            cd docker
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+            export IMAGE_TAG
+            bash scripts/deploy.sh

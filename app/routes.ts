@@ -178,4 +178,7 @@ export default [
   route("api/qdrant", "routes/api/qdrant/index.tsx"),
   route("api/qdrant/:id", "routes/api/qdrant/id.tsx"),
   route("api/submit-form", "routes/api/submit-form.tsx"),
+
+  // Health
+  route("health", "routes/health.tsx"),
 ] satisfies RouteConfig;

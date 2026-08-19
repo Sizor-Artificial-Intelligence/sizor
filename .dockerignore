@@ -1,4 +1,14 @@
-.react-router
-build
+.git
+.gitignore
+.dockerignore
+docker
 node_modules
-README.md
+build
+.cache
+.react-router
+.env
+.env.*
+!.env.example
+prisma/databases
+npm-debug.log*
+*.md
